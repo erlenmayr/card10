@@ -1,1 +1,8 @@
-{"name":"Uhrwerk","description":"Uhrwerk","category":"utility","author":"Stephan","revision":0}
+{
+  "name" : "Uhrwerk",
+  "description" : "Swiss-style clockwork animation for card10.",
+  "category" : "graphics",
+  "author" : "Stephan",
+  "revision" : 2
+}
+

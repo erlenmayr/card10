@@ -1,3 +1,8 @@
+# display animated Swiss style clockwork
+# https://github.com/erlenmayr/card10
+# contact: verbuecheln@posteo.de
+# License: GPLv2
+
 import color
 import display
 import math
@@ -8,111 +13,91 @@ import power
 
 
 
-
-class Gear:
-    def __init__(self, disp, x, y, radius, col, velo):
-        self.disp = disp
-        self.x = x
-        self.y = y
-        self.radius = radius
-        self.col = col
-        self.ang = 0
-        self.velo = velo
-    def turn(self, units):
-        self.ang = math.radians(units * self.velo)
-    def pendel(self, ms):
-        self.ang = math.radians(90) - math.radians(45) * math.sin(math.radians(0.36 * ms))
-    def draw(self):
-        thick = 5
-        xs = self.x + round((self.radius - thick) * math.sin(self.ang))
-        ys = self.y + round((self.radius - thick) * math.cos(self.ang))
-        xe = self.x - round((self.radius - thick) * math.sin(self.ang))
-        ye = self.y - round((self.radius - thick) * math.cos(self.ang))
-        self.disp.line(xs, ys, xe, ye, col=color.BLACK, dotted=False, size=thick+1)
-        self.disp.circ(self.x, self.y, self.radius - thick, col=self.col,    filled=False, size=thick)
-        self.disp.circ(self.x, self.y, self.radius - thick, col=color.BLACK, filled=False, size=1)
-        self.disp.circ(self.x, self.y, self.radius,             col=color.BLACK, filled=False, size=1)
-        self.disp.line(xs, ys, xe, ye, col=self.col,    dotted=False, size=thick)
+def draw_gear(disp, x, y, radius, ang, col):
+    xd = round((radius - 5) * math.sin(ang))
+    yd = round((radius - 5) * math.cos(ang))
+    disp.line(x + xd, y + yd, x - xd, y - yd, col=color.BLACK, size=5)
+    disp.circ(x, y, radius - 5, col=col, filled=False, size=5)
+    disp.circ(x, y, radius - 5, col=color.BLACK, filled=False)
+    disp.circ(x, y, radius, col=color.BLACK, filled=False)
+    disp.line(x + xd, y + yd, x - xd, y - yd, col=col, size=4)
 
 
 
+def draw_hand(disp, x, y, len, ang, col, thick):
+    xs = x - round(len * math.sin(ang))
+    ys = y - round(len * math.cos(ang))
+    disp.line(x, y, xs, ys, col=color.BLACK, size=thick+1)
+    disp.line(x, y, xs, ys, col=col, size=thick)
 
 
 
-
-class Hand:
-    def __init__(self, disp, x, y, len, col, thick, velo):
-        self.disp = disp
-        self.x = x
-        self.y = y
-        self.len = len
-        self.ang = 0
-        self.thick = thick
-        self.col = col
-        self.velo = velo
-    def turn(self, units):
-        self.ang = math.radians(units * self.velo)
-    def draw(self):
-        xs = self.x - round(self.len * math.sin(self.ang))
-        ys = self.y - round(self.len * math.cos(self.ang))
-        self.disp.line(self.x, self.y, xs, ys, col=color.BLACK, dotted=False, size=(self.thick+1))
-        self.disp.line(self.x, self.y, xs, ys, col=self.col, dotted=False, size=self.thick)
+def draw_battery(disp):
+    volt = os.read_battery()
+    perc = (volt - 3.4) / 0.8
+    fill = min(19, round(perc * 20))
+    col = (max(0, round((1 - perc) * 255)), 255, 0)
+    if perc < 0.5:
+        col = (255, min(255, round(perc * 255)), 0)
+    if perc > 1.0:
+        col = (0, 0, 255)
+    disp.rect(0, 0, 23, 10, col=color.WHITE, filled=True, size=1)
+    disp.rect(1, 1, 22, 9, col=color.BLACK, filled=True, size=1)
+    disp.rect(2, 2, 2 + fill, 8, col=col, filled=True, size=1)
+    disp.rect(24, 3, 25, 6, col=color.WHITE, filled=True, size=1)
 
 
 
-def print_battery(disp):
-        volt = os.read_battery()
-        perc = (volt - 3.4) / 0.8
-        fill = min(19, round(perc * 20))
-        bar = (min(255, round((1 - perc) * 255)), 255, 0)
-        if perc < 0.5:
-            bar = (255, min(255, round(perc * 255)), 0)
-        disp.rect(0, 0, 23, 10, col=color.WHITE, filled=True, size=1)
-        disp.rect(1, 1, 22, 9, col=color.BLACK, filled=True, size=1)
-        disp.rect(2, 2, 2 + fill, 8, col=bar, filled=True, size=1)
-        disp.rect(24, 3, 25, 6, col=color.WHITE, filled=True, size=1)
+def print_voltage(disp):
+    volt = os.read_battery()
+    disp.print(("%.2f" % volt) + "V")
 
 
 
+def print_power(disp):
+    mW = power.read_battery_voltage() * power.read_battery_current() * 1000
+    disp.print(("%.1f" % mW) + "mW")
 
-def ani():
+
+
+def draw_gears(disp, t, ms):
+    # pendel
+    draw_gear(disp, 100, 39, 60, 1.570796 - 0.7853982 * math.sin(0.006283185 * ms), htmlcolor.DIMGRAY)
+    # minute gears
+    draw_gear(disp, 80, 40, 35, t[4] * -0.1047198, htmlcolor.DIMGRAY)
+    draw_gear(disp, 133, 50, 20, t[4] * 0.3665192, htmlcolor.DIMGRAY)
+    # second gears
+    draw_gear(disp, 80, 40, 15, t[5] * -0.1047198, htmlcolor.DIMGRAY)
+    draw_gear(disp, 38, 54, 30, t[5] * 0.05235988, htmlcolor.DIMGRAY)
+
+
+
+def draw_hands(disp, t):
+    # hour hand
+    draw_hand(disp, 80, 40, 20, (t[3] + t[4] / 60.0) * -0.5235988, htmlcolor.GOLD, 2)
+    # minute hand
+    draw_hand(disp, 80, 40, 30, t[4] * -0.1047198, htmlcolor.GOLD, 2)
+    # second hand
+    draw_hand(disp, 80, 40, 35, t[5] * -0.1047198, htmlcolor.ORANGERED, 1)
+    disp.circ(80, 40, 4, col=color.BLACK, filled=True, size=1)
+    disp.circ(80, 40, 3, col=htmlcolor.ORANGERED, filled=True, size=1)
+
+
+
+def animate():
     with display.open() as disp:
-        pendel = Gear(disp, 100, 39, 60, (48, 48, 48), 0)
-        mg1 = Gear(disp, 80, 40, 35, (48, 48, 48), -6)
-        mg2 = Gear(disp, 133, 50, 20, (48, 48, 48), 21)
-        sg1 = Gear(disp, 80, 40, 15, (48, 48, 48), -6)
-        sg2 = Gear(disp, 38, 54, 30, (48, 48, 48), 3)
-        hh = Hand(disp, 80, 40, 20, htmlcolor.GOLD, 2, -30)
-        mh = Hand(disp, 80, 40, 30, htmlcolor.GOLD, 2, -6)
-        sh = Hand(disp, 80, 40, 35, htmlcolor.ORANGERED, 1, -6)
-        ms = 0;
         while True:
-            time = utime.localtime()
-            pendel.pendel(ms)
-            mg1.turn(time[4])
-            mg2.turn(time[4])
-            sg1.turn(time[5])
-            sg2.turn(time[5])
-            hh.turn(time[3] + (time[4] / 60.0))
-            mh.turn(time[4])
-            sh.turn(time[5])
+            t = utime.localtime()
+            ms = utime.time_ms() % 1000
+            check_buttons()
             disp.clear()
-            print_battery(disp)
-            pendel.draw()
-            mg1.draw()
-            mg2.draw()
-            sg1.draw()
-            sg2.draw()
-            hh.draw()
-            mh.draw()
-            sh.draw()
-            disp.circ(80, 40, 4, col=color.BLACK, filled=True, size=1)
-            disp.circ(80, 40, 3, col=htmlcolor.ORANGERED, filled=True, size=1)
+            draw_gears(disp, t, ms)
+            draw_hands(disp, t)
+            draw_battery(disp)
             disp.update()
-            ms = (utime.time_ms() % 1000)
             utime.sleep_ms(50)
 
 
-ani()
 
+animate()
 
