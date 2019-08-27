@@ -89,7 +89,6 @@ def animate():
         while True:
             t = utime.localtime()
             ms = utime.time_ms() % 1000
-            check_buttons()
             disp.clear()
             draw_gears(disp, t, ms)
             draw_hands(disp, t)
