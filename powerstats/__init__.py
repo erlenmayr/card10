@@ -18,3 +18,5 @@ def powerstats():
             disp.update()
             utime.sleep_ms(100)
 
+powerstats()
+
