@@ -16,7 +16,7 @@ def powerstats():
             disp.print("{:.1f} mA".format(curr), posx=0, posy=40)
             disp.print("{:.1f} mW".format(powr), posx=0, posy=60)
             disp.update()
-            utime.sleep_ms(100)
+            utime.sleep(1)
 
 powerstats()
 
