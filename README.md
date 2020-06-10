@@ -15,7 +15,7 @@ You fill find installeable versions at
 https://badge.team/projects/uhrwerk
 
 You might find demo videos at
-https://verbuecheln.ch/uhrwerk/
+https://verbuecheln.ch/uhrwerk/ (IPv6-only server)
 
 ## Power Stats
 
