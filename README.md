@@ -2,6 +2,8 @@
 
 Apps and stuff for the card10 badge from Chaos Communication Camp 2019.
 
+Update: Commits are now signed with PGP.
+
 ## Uhrwerk
 
 Swiss-style clockwork animation
